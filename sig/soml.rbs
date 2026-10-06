@@ -1,0 +1,143 @@
+# Read and write SOML, a config format for humans.
+module SOML
+	VERSION: String
+
+	# A value in a document, as `parse` returns it.
+	type value = String | Integer | Float | bool | nil | Time | Duration | Array[value] | Hash[String | Symbol, value]
+
+	# A whole document, which is always an object or an array.
+	type document = Hash[String | Symbol, value] | Array[value]
+
+	# Parse a document.
+	def self.parse: (string source, ?symbolize_names: boolish, ?freeze: boolish) -> document
+
+	# Read and parse a file.
+	def self.load_file: (path path, ?symbolize_names: boolish, ?freeze: boolish) -> document
+
+	# Write a hash or an array as SOML, keeping the member order of each hash, or as canonical form with `canonical: true`.
+	def self.generate: (Hash[untyped, untyped] | Array[untyped] value, ?canonical: boolish) -> String
+
+	# Format a document, keeping its comments, member order, and spelling.
+	def self.format: (string source) -> String
+
+	# A key in an object or an index in an array.
+	type path_segment = String | Symbol | Integer
+
+	# Change one value in a document, and keep everything else as it is written.
+	def self.edit: (string source, Array[path_segment] path, untyped value, ?delete: false) -> String
+		| (string source, Array[path_segment] path, delete: true) -> String
+
+	# Whether a key can be written without quotes, as a bare key. A key is a `String` or a `Symbol`, so anything else gives false.
+	def self.bare_key?: (untyped key) -> bool
+
+	# The base class of the errors this library raises.
+	class Error < StandardError
+	end
+
+	# Raised when the input is not a valid document.
+	class ParseError < Error
+		# What is wrong, without the position.
+		attr_reader reason: String
+
+		# The 1-based line of the error.
+		attr_reader line: Integer
+
+		# The 1-based column of the error, counted in characters.
+		attr_reader column: Integer
+
+		# The 0-based character index of the error in the source.
+		attr_reader offset: Integer
+
+		# The file the document is from, when it was read by `load_file`.
+		attr_reader path: String?
+
+		# Only the parser makes a `ParseError`. `byte_offset` is where the error is in `source`, in bytes.
+		def initialize: (String reason, String source, Integer byte_offset, ?String? path) -> void
+
+		# Up to three lines ending at the error, with a caret under the position.
+		def code_frame: () -> String
+
+		def detailed_message: (?highlight: boolish, **untyped) -> String
+	end
+
+	# Raised by `generate` for a value that cannot be written.
+	class GenerateError < Error
+		# What is wrong, without the location.
+		attr_reader reason: String
+
+		# The keys and indexes that lead to the value.
+		attr_reader path: Array[String | Integer]
+
+		# Only the generator makes a `GenerateError`.
+		def initialize: (String reason) -> void
+
+		# The reason, and the path to the value when it is not the top-level value.
+		def to_s: () -> String
+	end
+
+	# A length of time, exact to the nanosecond.
+	class Duration < Data
+		include Comparable
+
+		# Read a duration written as in a document, such as `1h30m`.
+		def self.parse: (string text) -> Duration
+
+		# Make a duration from a number of seconds, rounded to the nearest nanosecond.
+		def self.from_seconds: (Numeric seconds) -> Duration
+
+		def self.new: (nanoseconds: Integer) -> Duration
+			| (Integer nanoseconds) -> Duration
+
+		def self.[]: (nanoseconds: Integer) -> Duration
+			| (Integer nanoseconds) -> Duration
+
+		def self.members: () -> [:nanoseconds]
+
+		# The length in nanoseconds.
+		attr_reader nanoseconds: Integer
+
+		def initialize: (nanoseconds: Integer) -> void
+
+		def <=>: (untyped other) -> Integer?
+
+		def ==: (untyped other) -> bool
+
+		def eql?: (untyped other) -> bool
+
+		def hash: () -> Integer
+
+		def zero?: () -> bool
+
+		def positive?: () -> bool
+
+		def negative?: () -> bool
+
+		# The same length in the other direction.
+		def -@: () -> Duration
+
+		def abs: () -> Duration
+
+		def +: (Duration other) -> Duration
+
+		def -: (Duration other) -> Duration
+
+		# The length in seconds, exactly.
+		def to_r: () -> Rational
+
+		# The length in seconds.
+		def to_f: () -> Float
+
+		# The canonical spelling, such as `1h30m`.
+		def to_s: () -> String
+
+		def inspect: () -> String
+
+		def to_h: () -> { nanoseconds: Integer }
+
+		def with: (?nanoseconds: Integer) -> Duration
+
+		def deconstruct: () -> [Integer]
+
+		def deconstruct_keys: (Array[Symbol]? keys) -> { nanoseconds: Integer }
+	end
+end
