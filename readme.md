@@ -27,7 +27,7 @@ Or in a `Gemfile`:
 gem 'soml-lang'
 ```
 
-Requires Ruby 4.0 or later.
+[On RubyGems](https://rubygems.org/gems/soml-lang). Requires Ruby 4.0 or later.
 
 ## Usage
 
@@ -535,7 +535,7 @@ bundle exec ruby --yjit bench/benchmark.rb
 ## Limits
 
 - **Nesting is limited to 100 levels**, as the specification requires, in reading and in writing. Every array and object is one level, including the document's own collection.
-- **The gem name.** The name `soml` on RubyGems belongs to an unrelated format, which also defines `module SOML`, so the two gems cannot be loaded in one process.
+- **The gem name.** The gem is [`soml-lang`](https://rubygems.org/gems/soml-lang), because the name `soml` on RubyGems belongs to an unrelated format, which also defines `module SOML`, so the two gems cannot be loaded in one process.
 - **The syntax tree is not public yet.** `SOML.format` and `SOML.edit` use one, and the [JavaScript](https://github.com/soml-lang/soml-javascript), [Python](https://github.com/soml-lang/soml-python), and [Rust](https://github.com/soml-lang/soml-rust) implementations have a public one, for tools such as linters.
 
 ## Development
